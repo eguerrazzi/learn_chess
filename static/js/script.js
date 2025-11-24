@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    console.log("Script loaded v2 - Cache Busting");
+    console.log("Script loaded v3 - Color Selection & Undo");
     var $deviceModal = $('#device-modal');
     var $deviceIndicator = $('#device-indicator');
 
@@ -26,6 +26,7 @@ $(document).ready(function () {
             var $fen = $('#fen')
             var $pgn = $('#pgn')
             var $evaluation = $('#evaluation')
+            var playerColor = 'white'; // Default
 
             // Sounds (note: filenames are case-sensitive on some servers)
             var moveSound = new Audio('/static/sounds/move.mp3');
@@ -58,6 +59,12 @@ $(document).ready(function () {
             function onDragStart(source, piece, position, orientation) {
                 // do not pick up pieces if the game is over
                 if (game.game_over()) return false
+
+                // only pick up pieces for the player's color
+                var playerPiecePrefix = playerColor === 'white' ? 'w' : 'b';
+                if (piece.search(new RegExp('^' + playerPiecePrefix)) === -1) {
+                    return false;
+                }
 
                 // only pick up pieces for the side to move
                 if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
@@ -216,17 +223,66 @@ $(document).ready(function () {
 
             // Event Listeners
             $('#startBtn').on('click', function () {
+                playerColor = $('input[name="playerColor"]:checked').val();
                 game.reset();
                 board.start();
                 fenHistory = ['start'];
                 evalHistory = [null];
                 currentMoveIndex = 0;
                 $evaluation.text("-");
+
+                // Set board orientation based on player color
+                if (playerColor === 'black') {
+                    board.orientation('black');
+                    // Engine makes first move
+                    setTimeout(function () {
+                        makeEngineMove();
+                    }, 500);
+                } else {
+                    board.orientation('white');
+                }
+
                 updateStatus();
             });
 
             $('#flipBtn').on('click', function () {
                 board.flip();
+            });
+
+            // Undo Move Button
+            $('#undoBtn').on('click', function () {
+                // Can only undo if we're at the latest position and have moves to undo
+                if (currentMoveIndex !== fenHistory.length - 1) {
+                    alert("Cannot undo while reviewing history. Return to the latest position first.");
+                    return;
+                }
+
+                // Need at least 2 moves to undo (user move + engine move)
+                if (fenHistory.length < 3) { // start + user move + engine move
+                    alert("No moves to undo.");
+                    return;
+                }
+
+                // Remove last 2 moves (engine + user)
+                fenHistory.pop(); // Remove engine move
+                fenHistory.pop(); // Remove user move
+                evalHistory.pop();
+                evalHistory.pop();
+
+                currentMoveIndex = fenHistory.length - 1;
+
+                // Undo the moves in the game object
+                game.undo(); // Undo engine move
+                game.undo(); // Undo user move
+
+                // Update board
+                board.position(game.fen());
+
+                // Update evaluation
+                var evalText = evalHistory[currentMoveIndex] !== null ? evalHistory[currentMoveIndex] : "-";
+                $evaluation.text(evalText);
+
+                updateStatus();
             });
 
             $(window).resize(function () {

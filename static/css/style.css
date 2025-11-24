@@ -5,7 +5,6 @@
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --accent-color: #38bdf8;
-    /* Sky blue */
     --accent-hover: #0ea5e9;
     --danger-color: #ef4444;
     --success-color: #22c55e;
@@ -29,7 +28,6 @@ body {
     align-items: center;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -71,6 +69,7 @@ h1 {
     font-size: 2rem;
     letter-spacing: -0.025em;
     background: linear-gradient(to right, #fff, #94a3b8);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -103,7 +102,6 @@ h1 {
     box-shadow: 0 0 8px var(--accent-color);
 }
 
-/* Main Layout */
 main {
     flex: 1;
     display: flex;
@@ -118,21 +116,16 @@ main {
     justify-content: center;
 }
 
-/* Board Styling */
 #board {
     width: 600px !important;
-    /* Enforce width */
     height: 600px !important;
-    /* Enforce height */
     box-shadow: var(--board-shadow);
     border-radius: 8px;
     overflow: hidden;
     flex-shrink: 0;
-    /* Prevent shrinking */
     border: 4px solid #334155;
 }
 
-/* Controls Panel */
 .controls-panel {
     flex: 1;
     max-width: 400px;
@@ -162,7 +155,6 @@ h3 {
     padding-bottom: 0.5rem;
 }
 
-/* Status & Eval */
 #status {
     font-size: 1.2rem;
     font-weight: 500;
@@ -202,7 +194,6 @@ h3 {
     line-height: 1.5;
 }
 
-/* Buttons */
 .actions,
 .history-controls {
     display: flex;
@@ -254,7 +245,6 @@ h3 {
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Inputs */
 label {
     display: block;
     margin-bottom: 0.5rem;
@@ -276,7 +266,6 @@ output {
     color: var(--accent-color);
 }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -310,6 +299,52 @@ output {
 .modal-content p {
     color: var(--text-secondary);
     margin-bottom: 2rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Color Selection Radio Buttons */
+.color-selection {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0 20px 0;
+}
+
+.radio-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.radio-label:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.radio-label input[type="radio"] {
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.radio-label input[type="radio"]:checked+span {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.radio-label span {
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
 }
 
 /* Mobile Responsiveness */
