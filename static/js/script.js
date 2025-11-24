@@ -96,7 +96,13 @@ $(document).ready(function () {
 
                 updateStatus()
 
-                // If move is legal, make engine move
+                // Check if game is over after user's move (user won)
+                if (game.game_over()) {
+                    // Don't call engine, game is already over
+                    return;
+                }
+
+                // If move is legal and game continues, make engine move
                 makeEngineMove()
             }
 

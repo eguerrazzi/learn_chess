@@ -9,7 +9,7 @@ Un'applicazione web moderna ed elegante per giocare a scacchi contro il potente 
 *   **Interfaccia Premium**: Design moderno "Dark Mode" con effetti Glassmorphism per un'esperienza visiva piacevole.
 *   **Responsive**: Layout adattivo ottimizzato sia per Desktop che per Mobile.
 *   **Motore Potente**: Integrazione diretta con Stockfish (eseguibile locale).
-*   **Livello Regolabile**: Imposta l'ELO di Stockfish da 1350 a 3200 per adattarlo al tuo livello di abilità.
+*   **Livello Regolabile**: Imposta l'ELO di Stockfish da 200 a 3200 per adattarlo al tuo livello di abilità.
 *   **Analisi in Tempo Reale**: Visualizza la valutazione della mossa corrente e il vantaggio (es. +1.5, Mate in 3).
 *   **Storico Partita**: Naviga avanti e indietro tra le mosse effettuate per analizzare la partita.
 

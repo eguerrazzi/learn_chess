@@ -72,8 +72,8 @@
                             </label>
                         </div>
 
-                        <label for="elo">Stockfish ELO (1350-3200)</label>
-                        <input type="range" id="elo" name="elo" min="1350" max="3200" value="1500" step="50"
+                        <label for="elo">Engine ELO (200-3200)</label>
+                        <input type="range" id="elo" name="elo" min="200" max="3200" value="1500" step="50"
                             oninput="this.nextElementSibling.value = this.value">
                         <output>1500</output>
                     </div>
@@ -97,7 +97,7 @@
         crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}?v=3"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v=4"></script>
 </body>
 
 </html>

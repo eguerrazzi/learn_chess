@@ -2,6 +2,7 @@ import os
 import chess
 import chess.engine
 from flask import Flask, render_template, request, jsonify
+import weak_engine
 
 app = Flask(__name__)
 
@@ -45,13 +46,6 @@ def move():
         return jsonify({'error': 'Stockfish engine not available'}), 500
 
     try:
-        # Configure engine skill level using UCI_Elo
-        # UCI_LimitStrength must be true for UCI_Elo to work
-        # Stockfish typically requires a minimum ELO (often around 1320-1350).
-        # We clamp it to 1350 to be safe.
-        safe_elo = max(1350, int(elo))
-        eng.configure({"UCI_LimitStrength": True, "UCI_Elo": safe_elo})
-        
         # 1. Analyze the current position (User's move just happened)
         info_user = eng.analyse(board, chess.engine.Limit(time=0.1))
         
@@ -65,9 +59,17 @@ def move():
             eval_user = score_user.score() / 100.0
 
         # 2. Engine makes a move
-        limit = chess.engine.Limit(time=0.5) 
-        result = eng.play(board, limit)
-        best_move = result.move
+        # Route to weak engine for ELO < 1350, otherwise use full Stockfish
+        if int(elo) < 1350:
+            # Use weak engine for low ELO
+            best_move = weak_engine.get_weak_move(board, int(elo), eng)
+        else:
+            # Use full Stockfish with UCI_Elo for high ELO
+            safe_elo = max(1350, int(elo))
+            eng.configure({"UCI_LimitStrength": True, "UCI_Elo": safe_elo})
+            limit = chess.engine.Limit(time=0.5) 
+            result = eng.play(board, limit)
+            best_move = result.move
         
         if best_move:
             board.push(best_move)
@@ -102,9 +104,15 @@ def reset():
     return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
-    # Cleanup engine on exit is tricky with Flask reloader, but for local dev it's okay.
+    port = int(os.environ.get("PORT", 5000))
+
     try:
-        app.run(debug=True, port=5000)
+        app.run(
+            host="0.0.0.0",
+            port=port,
+            debug=False  # obbligatorio su Render
+        )
     finally:
         if engine:
             engine.quit()
+
