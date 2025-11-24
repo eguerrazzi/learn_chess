@@ -7,17 +7,17 @@ $(document).ready(function () {
     $('#desktopBtn').on('click', function () {
         $deviceIndicator.text("Desktop Mode");
         $deviceModal.fadeOut();
-        initGame();
+        initGame(false);
     });
 
     $('#mobileBtn').on('click', function () {
         $deviceIndicator.text("Mobile Mode");
         $deviceModal.fadeOut();
-        initGame();
+        initGame(true);
     });
 
     // Game Initialization Function
-    function initGame() {
+    function initGame(isMobile) {
         try {
             console.log("Starting initGame...");
             var board = null
@@ -27,6 +27,7 @@ $(document).ready(function () {
             var $pgn = $('#pgn')
             var $evaluation = $('#evaluation')
             var playerColor = 'white'; // Default
+            var selectedSquare = null; // Track selected square for click-click move
 
             // Sounds (note: filenames are case-sensitive on some servers)
             var moveSound = new Audio('/static/sounds/move.mp3');
@@ -76,7 +77,7 @@ $(document).ready(function () {
                 if (currentMoveIndex !== fenHistory.length - 1) return false
             }
 
-            function onDrop(source, target) {
+            function attemptMove(source, target) {
                 // see if the move is legal
                 var move = game.move({
                     from: source,
@@ -85,7 +86,7 @@ $(document).ready(function () {
                 })
 
                 // illegal move
-                if (move === null) return 'snapback'
+                if (move === null) return null
 
                 // Play sound for user move
                 playSound(move);
@@ -98,12 +99,17 @@ $(document).ready(function () {
 
                 // Check if game is over after user's move (user won)
                 if (game.game_over()) {
-                    // Don't call engine, game is already over
-                    return;
+                    return move;
                 }
 
                 // If move is legal and game continues, make engine move
                 makeEngineMove()
+                return move;
+            }
+
+            function onDrop(source, target) {
+                var move = attemptMove(source, target);
+                if (move === null) return 'snapback';
             }
 
             // update the board position after the piece snap
@@ -208,7 +214,7 @@ $(document).ready(function () {
             }
 
             var config = {
-                draggable: true,
+                draggable: !isMobile,
                 position: 'start',
                 onDragStart: onDragStart,
                 onDrop: onDrop,
@@ -226,6 +232,67 @@ $(document).ready(function () {
                 console.log("Resizing board...");
                 if (board) board.resize();
             }, 500);
+
+            // Click-Click Interaction Logic
+            function removeHighlights() {
+                $('#board .square-55d63').removeClass('highlight-selected');
+            }
+
+            function highlightSquare(square) {
+                var $square = $('#board .square-' + square);
+                $square.addClass('highlight-selected');
+            }
+
+            $('#board').on('click', '.square-55d63', function () {
+                console.log("Square clicked:", $(this).data('square'));
+                var square = $(this).data('square');
+
+                // Disable if reviewing history or game over
+                if (currentMoveIndex !== fenHistory.length - 1) return;
+                if (game.game_over()) return;
+
+                // Disable if not player's turn (engine thinking)
+                // Note: makeEngineMove is async, but game.turn() updates immediately after game.move()
+                // We should check if it's player's turn color
+                if (game.turn() !== playerColor.charAt(0)) return;
+
+                if (selectedSquare === null) {
+                    // Select piece
+                    var piece = game.get(square);
+                    if (piece && piece.color === playerColor.charAt(0)) {
+                        selectedSquare = square;
+                        highlightSquare(square);
+                    }
+                } else {
+                    // Move or Change Selection
+                    if (square === selectedSquare) {
+                        // Clicked same square -> Deselect
+                        selectedSquare = null;
+                        removeHighlights();
+                    } else {
+                        var move = attemptMove(selectedSquare, square);
+                        if (move) {
+                            // Valid move
+                            board.position(game.fen());
+                            selectedSquare = null;
+                            removeHighlights();
+                        } else {
+                            // Invalid move
+                            // Is it a friendly piece? Change selection
+                            var piece = game.get(square);
+                            if (piece && piece.color === playerColor.charAt(0)) {
+                                selectedSquare = square;
+                                removeHighlights();
+                                highlightSquare(square);
+                            } else {
+                                // Invalid move to empty or enemy square -> Deselect
+                                selectedSquare = null;
+                                removeHighlights();
+                            }
+                        }
+                    }
+                }
+            });
 
             // Event Listeners
             $('#startBtn').on('click', function () {

@@ -124,6 +124,8 @@ main {
     overflow: hidden;
     flex-shrink: 0;
     border: 4px solid #334155;
+    touch-action: none;
+    /* Prevent scrolling on mobile while playing */
 }
 
 .controls-panel {
@@ -379,4 +381,9 @@ output {
     .modal-content {
         padding: 20px;
     }
+}
+
+/* Highlight Selected Square */
+.highlight-selected {
+    box-shadow: inset 0 0 3px 3px yellow;
 }
