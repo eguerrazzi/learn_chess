@@ -27,6 +27,29 @@ $(document).ready(function () {
             var $pgn = $('#pgn')
             var $evaluation = $('#evaluation')
 
+            // Sounds (note: filenames are case-sensitive on some servers)
+            var moveSound = new Audio('/static/sounds/move.mp3');
+            var captureSound = new Audio('/static/sounds/capture.mp3');
+            var checkSound = new Audio('/static/sounds/Check.mp3');
+            var checkmateSound = new Audio('/static/sounds/Checkmate.mp3');
+
+            function playSound(move) {
+                // Priority: Checkmate > Check > Capture > Normal Move
+                if (game.in_checkmate()) {
+                    checkmateSound.currentTime = 0;
+                    checkmateSound.play().catch(e => console.log("Audio play failed:", e));
+                } else if (game.in_check()) {
+                    checkSound.currentTime = 0;
+                    checkSound.play().catch(e => console.log("Audio play failed:", e));
+                } else if (move.flags.includes('c') || move.flags.includes('e')) { // Capture or En Passant
+                    captureSound.currentTime = 0;
+                    captureSound.play().catch(e => console.log("Audio play failed:", e));
+                } else {
+                    moveSound.currentTime = 0;
+                    moveSound.play().catch(e => console.log("Audio play failed:", e));
+                }
+            }
+
             // History Management
             var fenHistory = ['start']
             var evalHistory = [null] // Align with fenHistory
@@ -56,6 +79,9 @@ $(document).ready(function () {
 
                 // illegal move
                 if (move === null) return 'snapback'
+
+                // Play sound for user move
+                playSound(move);
 
                 // Update history
                 fenHistory.push(game.fen())
@@ -132,8 +158,13 @@ $(document).ready(function () {
                                 }
                             }
 
-                            game.move(response.move, { sloppy: true }); // sloppy allows UCI
+                            var moveObj = game.move(response.move, { sloppy: true }); // sloppy allows UCI
                             board.position(game.fen());
+
+                            // Play sound for engine move
+                            if (moveObj) {
+                                playSound(moveObj);
+                            }
 
                             // Update history
                             fenHistory.push(game.fen());
