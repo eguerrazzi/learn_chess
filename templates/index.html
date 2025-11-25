@@ -75,6 +75,7 @@
                         <div class="eval-box">
                             <span>Eval: </span><span id="evaluation" class="eval-score">-</span>
                         </div>
+                        <div id="player-timer" class="timer-display">--:--</div>
                         <p id="pgn" class="pgn-display"></p>
                         <div class="history-controls">
                             <button id="prevBtn" class="btn secondary" title="Previous Move">&lt;&lt;</button>
@@ -96,6 +97,15 @@
                                 <span>Black</span>
                             </label>
                         </div>
+
+                        <label for="timeControl">Time Control</label>
+                        <select id="timeControl" name="timeControl">
+                            <option value="bullet">Bullet (1 min + 1 sec)</option>
+                            <option value="blitz">Blitz (3 min + 2 sec)</option>
+                            <option value="rapid" selected>Rapid (10 min + 5 sec)</option>
+                            <option value="classical">Classical (30 min + 0 sec)</option>
+                            <option value="none">No Time Limit</option>
+                        </select>
 
                         <label for="elo">Engine ELO (200-3200)</label>
                         <input type="range" id="elo" name="elo" min="200" max="3200" value="1500" step="50"

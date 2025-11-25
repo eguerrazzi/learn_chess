@@ -31,11 +31,113 @@ $(document).ready(function () {
             var gameResigned = false; // Track if player has resigned
             var pendingPromotion = null; // Store pending promotion move details
 
+            // Timer variables
+            var playerTimeRemaining = 0; // in seconds
+            var timeIncrement = 0; // in seconds
+            var timerInterval = null;
+            var timeControlConfig = {
+                'bullet': { initial: 60, increment: 1 },      // 1 min + 1 sec
+                'blitz': { initial: 180, increment: 2 },      // 3 min + 2 sec
+                'rapid': { initial: 600, increment: 5 },      // 10 min + 5 sec
+                'classical': { initial: 1800, increment: 0 }, // 30 min + 0 sec
+                'none': { initial: 0, increment: 0 }          // No time limit
+            };
+
             // Sounds (note: filenames are case-sensitive on some servers)
             var moveSound = new Audio('/static/sounds/move.mp3');
             var captureSound = new Audio('/static/sounds/capture.mp3');
             var checkSound = new Audio('/static/sounds/Check.mp3');
             var checkmateSound = new Audio('/static/sounds/Checkmate.mp3');
+
+            // Timer Functions
+            function loadTimeControl() {
+                var saved = localStorage.getItem('timeControl');
+                if (saved && timeControlConfig[saved]) {
+                    $('#timeControl').val(saved);
+                }
+            }
+
+            function saveTimeControl() {
+                var selected = $('#timeControl').val();
+                localStorage.setItem('timeControl', selected);
+            }
+
+            function initializeTimer() {
+                var timeControl = $('#timeControl').val();
+                var config = timeControlConfig[timeControl];
+                
+                if (config.initial === 0) {
+                    // No time limit
+                    playerTimeRemaining = 0;
+                    timeIncrement = 0;
+                    $('#player-timer').text('∞').removeClass('timer-warning');
+                } else {
+                    playerTimeRemaining = config.initial;
+                    timeIncrement = config.increment;
+                    updateTimerDisplay();
+                }
+            }
+
+            function updateTimerDisplay() {
+                if (playerTimeRemaining === 0 && $('#timeControl').val() === 'none') {
+                    $('#player-timer').text('∞');
+                    return;
+                }
+
+                var minutes = Math.floor(playerTimeRemaining / 60);
+                var seconds = playerTimeRemaining % 60;
+                var display = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+                
+                $('#player-timer').text(display);
+                
+                // Add warning class if time is low
+                if (playerTimeRemaining < 10 && playerTimeRemaining > 0) {
+                    $('#player-timer').addClass('timer-warning');
+                } else {
+                    $('#player-timer').removeClass('timer-warning');
+                }
+            }
+
+            function startPlayerTimer() {
+                // Only start if time control is enabled and timer not already running
+                if ($('#timeControl').val() === 'none' || timerInterval !== null) return;
+                
+                timerInterval = setInterval(function() {
+                    playerTimeRemaining--;
+                    
+                    if (playerTimeRemaining <= 0) {
+                        playerTimeRemaining = 0;
+                        stopPlayerTimer();
+                        handleTimeout();
+                    }
+                    
+                    updateTimerDisplay();
+                }, 1000);
+            }
+
+            function stopPlayerTimer() {
+                if (timerInterval !== null) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+
+            function addPlayerIncrement() {
+                if ($('#timeControl').val() === 'none') return;
+                
+                playerTimeRemaining += timeIncrement;
+                updateTimerDisplay();
+            }
+
+            function handleTimeout() {
+                gameResigned = true;
+                var winner = playerColor === 'white' ? 'Black' : 'White';
+                $('#status').text(winner + ' wins on time!');
+                console.log('Player ran out of time, winner:', winner);
+            }
+
+            // Load saved time control on init
+            loadTimeControl();
 
             function playSound(move) {
                 // Priority: Checkmate > Check > Capture > Normal Move
@@ -80,6 +182,11 @@ $(document).ready(function () {
             }
 
             function attemptMove(source, target) {
+                // Check if timer has expired
+                if (playerTimeRemaining === 0 && $('#timeControl').val() !== 'none') {
+                    return null; // Block move if time is up
+                }
+
                 // Check for promotion
                 var piece = game.get(source);
                 if (piece.type === 'p' &&
@@ -108,6 +215,10 @@ $(document).ready(function () {
                 // illegal move
                 if (move === null) return null
 
+                // Stop timer and add increment after successful move
+                stopPlayerTimer();
+                addPlayerIncrement();
+
                 // Play sound for user move
                 playSound(move);
 
@@ -119,6 +230,7 @@ $(document).ready(function () {
 
                 // Check if game is over after user's move (user won)
                 if (game.game_over()) {
+                    stopPlayerTimer();
                     return move;
                 }
 
@@ -225,7 +337,11 @@ $(document).ready(function () {
                             updateStatus();
                         }
                         if (response.game_over) {
+                            stopPlayerTimer();
                             // Handle game over if needed beyond updateStatus
+                        } else {
+                            // Start player timer for their next move
+                            startPlayerTimer();
                         }
                     },
                     error: function (error) {
@@ -340,10 +456,17 @@ $(document).ready(function () {
                         board.position(game.fen());
                         fenHistory.push(game.fen());
                         currentMoveIndex = fenHistory.length - 1;
+                        
+                        // Stop timer and add increment
+                        stopPlayerTimer();
+                        addPlayerIncrement();
+                        
                         updateStatus();
 
                         if (!game.game_over()) {
                             makeEngineMove();
+                        } else {
+                            stopPlayerTimer();
                         }
                     }
                     pendingPromotion = null;
@@ -361,6 +484,11 @@ $(document).ready(function () {
                 currentMoveIndex = 0;
                 $evaluation.text("-");
 
+                // Save and initialize timer
+                saveTimeControl();
+                stopPlayerTimer();
+                initializeTimer();
+
                 // Set board orientation based on player color
                 if (playerColor === 'black') {
                     board.orientation('black');
@@ -370,6 +498,8 @@ $(document).ready(function () {
                     }, 500);
                 } else {
                     board.orientation('white');
+                    // Start timer for white (player)
+                    startPlayerTimer();
                 }
 
                 updateStatus();
@@ -386,6 +516,7 @@ $(document).ready(function () {
             // Resign confirmation handlers
             $('#confirmResignBtn').on('click', function () {
                 $('#resign-modal').fadeOut();
+                stopPlayerTimer();
                 gameResigned = true; // Set resignation flag
                 var winner = playerColor === 'white' ? 'Black' : 'White';
                 $('#status').text(winner + ' wins by resignation');
@@ -433,6 +564,9 @@ $(document).ready(function () {
                 var evalText = evalHistory[currentMoveIndex] !== null ? evalHistory[currentMoveIndex] : "-";
                 $evaluation.text(evalText);
 
+                // Restart timer for player's turn (time remains unchanged)
+                startPlayerTimer();
+
                 updateStatus();
             });
 
@@ -442,6 +576,8 @@ $(document).ready(function () {
 
             // History Navigation
             $('#prevBtn').on('click', function () {
+                stopPlayerTimer(); // Stop timer during history navigation
+                
                 if (currentMoveIndex > 0) {
                     currentMoveIndex--;
                     currentMoveIndex--; // Jump back 2 for full move? Or 1? Keeping original logic for now.
@@ -462,6 +598,13 @@ $(document).ready(function () {
                     board.position(fenHistory[currentMoveIndex]);
                     var evalText = evalHistory[currentMoveIndex] !== null ? evalHistory[currentMoveIndex] : "-";
                     $evaluation.text(evalText);
+                }
+                
+                // If returned to latest position and it's player's turn, restart timer
+                if (currentMoveIndex === fenHistory.length - 1 && 
+                    !game.game_over() && 
+                    game.turn() === playerColor.charAt(0)) {
+                    startPlayerTimer();
                 }
             });
 
