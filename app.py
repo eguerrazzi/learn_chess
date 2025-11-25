@@ -3,11 +3,28 @@ import chess
 import chess.engine
 from flask import Flask, render_template, request, jsonify
 import weak_engine
+import platform
 
 app = Flask(__name__)
 
-# Configuration
-STOCKFISH_PATH = os.path.join(os.path.dirname(__file__), 'stockfish', 'stockfish-windows-x86-64-avx2.exe')
+# Configurazione Stockfish
+def get_stockfish_path():
+    base_dir = os.path.dirname(__file__)
+    stockfish_dir = os.path.join(base_dir, 'stockfish')
+    
+    system = platform.system()
+    if system == "Windows":
+        return os.path.join(stockfish_dir, 'stockfish-windows-x86-64-avx2.exe')
+    elif system == "Linux":
+        path = os.path.join(stockfish_dir, 'stockfish-ubuntu-x86-64-avx2')
+        # Assicura che sia eseguibile su Linux
+        if os.path.exists(path):
+            os.chmod(path, 0o755)
+        return path
+    else:
+        raise Exception(f"Sistema operativo non supportato: {system}")
+
+STOCKFISH_PATH =  get_stockfish_path()
 
 # Global engine instance (simple approach for local single-user app)
 # In a real multi-user production app, this would need a pool or per-session handling.
