@@ -33,6 +33,31 @@
         </div>
     </div>
 
+    <!-- Promotion Selection Modal -->
+    <div id="promotion-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Promote to</h2>
+            <div class="promotion-options">
+                <button class="btn secondary promotion-btn" data-piece="q">Queen</button>
+                <button class="btn secondary promotion-btn" data-piece="r">Rook</button>
+                <button class="btn secondary promotion-btn" data-piece="b">Bishop</button>
+                <button class="btn secondary promotion-btn" data-piece="n">Knight</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resign Confirmation Modal -->
+    <div id="resign-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Abbandona partita</h2>
+            <p>Sei sicuro di voler abbandonare la partita?</p>
+            <div class="modal-actions">
+                <button id="confirmResignBtn" class="btn primary">Sì, abbandona</button>
+                <button id="cancelResignBtn" class="btn secondary">Annulla</button>
+            </div>
+        </div>
+    </div>
+
     <div class="app-container">
         <header>
             <h1>Chess <span class="highlight">AI</span></h1>
@@ -81,6 +106,7 @@
                     <div class="actions">
                         <button id="startBtn" class="btn primary">New Game</button>
                         <button id="undoBtn" class="btn secondary">Undo Move</button>
+                        <button id="resignBtn" class="btn secondary">Resign</button>
                         <button id="flipBtn" class="btn secondary">Flip Board</button>
                     </div>
                 </div>
@@ -97,7 +123,7 @@
         crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}?v=5"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v=9"></script>
 </body>
 
 </html>

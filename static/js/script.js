@@ -28,6 +28,8 @@ $(document).ready(function () {
             var $evaluation = $('#evaluation')
             var playerColor = 'white'; // Default
             var selectedSquare = null; // Track selected square for click-click move
+            var gameResigned = false; // Track if player has resigned
+            var pendingPromotion = null; // Store pending promotion move details
 
             // Sounds (note: filenames are case-sensitive on some servers)
             var moveSound = new Audio('/static/sounds/move.mp3');
@@ -78,11 +80,29 @@ $(document).ready(function () {
             }
 
             function attemptMove(source, target) {
+                // Check for promotion
+                var piece = game.get(source);
+                if (piece.type === 'p' &&
+                    ((piece.color === 'w' && target.charAt(1) === '8') ||
+                        (piece.color === 'b' && target.charAt(1) === '1'))) {
+
+                    // It's a promotion!
+                    // Check if move is valid (ignoring promotion piece for now, assuming queen for validation)
+                    var tempMove = game.move({ from: source, to: target, promotion: 'q' });
+                    if (tempMove === null) return null; // Invalid move
+                    game.undo(); // Undo the temp move
+
+                    // Store pending move and show modal
+                    pendingPromotion = { source: source, target: target };
+                    $('#promotion-modal').fadeIn();
+                    return 'promotion'; // Signal that promotion is pending
+                }
+
                 // see if the move is legal
                 var move = game.move({
                     from: source,
                     to: target,
-                    promotion: 'q' // NOTE: always promote to a queen for example simplicity
+                    promotion: 'q' // Default fallback, should not be reached for player moves if logic works
                 })
 
                 // illegal move
@@ -108,8 +128,10 @@ $(document).ready(function () {
             }
 
             function onDrop(source, target) {
+                if (gameResigned) return 'snapback'; // Block moves after resignation
                 var move = attemptMove(source, target);
                 if (move === null) return 'snapback';
+                if (move === 'promotion') return; // Wait for modal selection
             }
 
             // update the board position after the piece snap
@@ -247,13 +269,14 @@ $(document).ready(function () {
                 console.log("Square clicked:", $(this).data('square'));
                 var square = $(this).data('square');
 
+                // Disable if game resigned
+                if (gameResigned) return;
+
                 // Disable if reviewing history or game over
                 if (currentMoveIndex !== fenHistory.length - 1) return;
                 if (game.game_over()) return;
 
                 // Disable if not player's turn (engine thinking)
-                // Note: makeEngineMove is async, but game.turn() updates immediately after game.move()
-                // We should check if it's player's turn color
                 if (game.turn() !== playerColor.charAt(0)) return;
 
                 if (selectedSquare === null) {
@@ -271,6 +294,12 @@ $(document).ready(function () {
                         removeHighlights();
                     } else {
                         var move = attemptMove(selectedSquare, square);
+                        if (move === 'promotion') {
+                            // Valid promotion move initiated
+                            selectedSquare = null;
+                            removeHighlights();
+                            return;
+                        }
                         if (move) {
                             // Valid move
                             board.position(game.fen());
@@ -294,11 +323,39 @@ $(document).ready(function () {
                 }
             });
 
+            // Promotion Modal Handlers
+            $('.promotion-btn').on('click', function () {
+                var promotionPiece = $(this).data('piece');
+                $('#promotion-modal').fadeOut();
+
+                if (pendingPromotion) {
+                    var move = game.move({
+                        from: pendingPromotion.source,
+                        to: pendingPromotion.target,
+                        promotion: promotionPiece
+                    });
+
+                    if (move) {
+                        playSound(move);
+                        board.position(game.fen());
+                        fenHistory.push(game.fen());
+                        currentMoveIndex = fenHistory.length - 1;
+                        updateStatus();
+
+                        if (!game.game_over()) {
+                            makeEngineMove();
+                        }
+                    }
+                    pendingPromotion = null;
+                }
+            });
+
             // Event Listeners
             $('#startBtn').on('click', function () {
                 playerColor = $('input[name="playerColor"]:checked').val();
                 game.reset();
                 board.start();
+                gameResigned = false; // Reset resignation flag
                 fenHistory = ['start'];
                 evalHistory = [null];
                 currentMoveIndex = 0;
@@ -316,6 +373,27 @@ $(document).ready(function () {
                 }
 
                 updateStatus();
+            });
+
+            $('#resignBtn').on('click', function () {
+                console.log('Resign button clicked, game over:', game.game_over());
+                if (!game.game_over()) {
+                    // Show resign confirmation modal
+                    $('#resign-modal').fadeIn();
+                }
+            });
+
+            // Resign confirmation handlers
+            $('#confirmResignBtn').on('click', function () {
+                $('#resign-modal').fadeOut();
+                gameResigned = true; // Set resignation flag
+                var winner = playerColor === 'white' ? 'Black' : 'White';
+                $('#status').text(winner + ' wins by resignation');
+                console.log('Player resigned, winner:', winner);
+            });
+
+            $('#cancelResignBtn').on('click', function () {
+                $('#resign-modal').fadeOut();
             });
 
             $('#flipBtn').on('click', function () {
