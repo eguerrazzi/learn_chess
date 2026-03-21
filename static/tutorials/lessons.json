@@ -1,0 +1,276 @@
+[
+  {
+    "id": "pawn",
+    "title": "Il Pedone",
+    "icon": "♟",
+    "description": "Il pedone avanza di una casella, ma dalla posizione iniziale può avanzare di due. Cattura in diagonale.",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "Il pedone si muove in avanti di una casella. Dalla posizione iniziale può muoversi di due caselle.",
+        "fen": "8/8/8/8/8/8/4P3/8 w - - 0 1",
+        "highlights": ["e2", "e3", "e4"]
+      },
+      {
+        "type": "demo",
+        "text": "Il pedone cattura in diagonale, non in avanti. Qui il pedone bianco può catturare il pedone nero in d5.",
+        "fen": "8/8/8/3p4/4P3/8/8/8 w - - 0 1",
+        "highlights": ["e4", "d5"]
+      },
+      {
+        "type": "exercise",
+        "text": "Muovi il pedone dalla posizione iniziale avanzando di due caselle!",
+        "fen": "8/8/8/8/8/8/4P3/8 w - - 0 1",
+        "correctMove": "e2e4",
+        "orientation": "white"
+      },
+      {
+        "type": "exercise",
+        "text": "Il pedone nero è indifeso. Catturalo!",
+        "fen": "8/8/8/3p4/4P3/8/8/8 w - - 0 1",
+        "correctMove": "e4d5",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "knight",
+    "title": "Il Cavallo",
+    "icon": "♞",
+    "description": "Il cavallo si muove a 'L': due caselle in una direzione e una perpendicolare. È l'unico pezzo che può saltare.",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "Il cavallo si muove a 'L': due caselle in una direzione e poi una perpendicolare. Può raggiungere fino a 8 caselle dal centro.",
+        "fen": "8/8/8/8/4N3/8/8/8 w - - 0 1",
+        "highlights": ["e4", "d6", "f6", "g5", "g3", "f2", "d2", "c3", "c5"]
+      },
+      {
+        "type": "demo",
+        "text": "Il cavallo è l'unico pezzo che può saltare sopra altri pezzi!",
+        "fen": "8/8/8/8/3PPP2/3PKP2/3PPP2/8 w - - 0 1",
+        "highlights": ["e3", "d5", "f5", "g4", "g2", "f1", "d1", "c2", "c4"]
+      },
+      {
+        "type": "exercise",
+        "text": "Muovi il cavallo per catturare il pedone nero!",
+        "fen": "8/8/3p4/8/8/4N3/8/8 w - - 0 1",
+        "correctMove": "e3d5",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "bishop",
+    "title": "L'Alfiere",
+    "icon": "♝",
+    "description": "L'alfiere si muove in diagonale per quante caselle vuole. Resta sempre sullo stesso colore di casella.",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "L'alfiere si muove in diagonale, per quante caselle vuole. Un alfiere sulle caselle chiare resterà sempre sulle caselle chiare.",
+        "fen": "8/8/8/8/4B3/8/8/8 w - - 0 1",
+        "highlights": ["e4", "d5", "c6", "b7", "a8", "f5", "g6", "h7", "d3", "c2", "b1", "f3", "g2", "h1"]
+      },
+      {
+        "type": "exercise",
+        "text": "Cattura la torre nera con l'alfiere!",
+        "fen": "8/8/5r2/8/8/2B5/8/8 w - - 0 1",
+        "correctMove": "c3f6",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "rook",
+    "title": "La Torre",
+    "icon": "♜",
+    "description": "La torre si muove in orizzontale e verticale per quante caselle vuole.",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "La torre si muove in linea retta: orizzontale o verticale, per quante caselle vuole.",
+        "fen": "8/8/8/8/4R3/8/8/8 w - - 0 1",
+        "highlights": ["e4", "e1", "e2", "e3", "e5", "e6", "e7", "e8", "a4", "b4", "c4", "d4", "f4", "g4", "h4"]
+      },
+      {
+        "type": "exercise",
+        "text": "Cattura l'alfiere nero con la torre!",
+        "fen": "8/8/8/4b3/8/8/8/4R3 w - - 0 1",
+        "correctMove": "e1e5",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "queen",
+    "title": "La Donna",
+    "icon": "♛",
+    "description": "La donna combina i movimenti di torre e alfiere: si muove in orizzontale, verticale e diagonale.",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "La donna è il pezzo più potente! Combina le mosse della torre (linee rette) e dell'alfiere (diagonali).",
+        "fen": "8/8/8/8/4Q3/8/8/8 w - - 0 1",
+        "highlights": ["e4", "e1", "e8", "a4", "h4", "a8", "h7", "h1", "b1"]
+      },
+      {
+        "type": "exercise",
+        "text": "Cattura il cavallo nero con la donna!",
+        "fen": "8/8/8/8/4Q3/8/8/n7 w - - 0 1",
+        "correctMove": "e4a4",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "king",
+    "title": "Il Re",
+    "icon": "♚",
+    "description": "Il re si muove di una casella in qualsiasi direzione. Non può mai mettersi in scacco!",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "Il re si muove di una sola casella, ma in qualsiasi direzione: orizzontale, verticale, diagonale.",
+        "fen": "8/8/8/8/4K3/8/8/8 w - - 0 1",
+        "highlights": ["e4", "d5", "e5", "f5", "d4", "f4", "d3", "e3", "f3"]
+      },
+      {
+        "type": "demo",
+        "text": "Il re non può mai spostarsi su una casella controllata da un pezzo avversario. Qui il re non può andare su e5 o f5 a causa della torre nera.",
+        "fen": "4r3/8/8/8/4K3/8/8/8 w - - 0 1",
+        "highlights": ["e4", "d5", "d4", "d3", "e3", "f3"]
+      },
+      {
+        "type": "exercise",
+        "text": "Cattura il pedone nero con il re!",
+        "fen": "8/8/8/3p4/4K3/8/8/8 w - - 0 1",
+        "correctMove": "e4d5",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "check",
+    "title": "Scacco e Scaccomatto",
+    "icon": "♔",
+    "description": "Quando il re è attaccato si dice 'scacco'. Se non può fuggire, è 'scaccomatto' e la partita finisce!",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "Scacco: il re è attaccato da un pezzo avversario. Il giocatore DEVE rispondere allo scacco (fuggire, bloccare, o catturare l'attaccante).",
+        "fen": "4k3/8/8/8/8/8/8/4R3 w - - 0 1",
+        "highlights": ["e1", "e8"]
+      },
+      {
+        "type": "demo",
+        "text": "Scaccomatto! Il re nero è in scacco dalla donna, non può fuggire e nessun pezzo può bloccare. Partita finita!",
+        "fen": "k7/8/1K6/8/8/8/8/Q7 w - - 0 1",
+        "highlights": ["a1", "a8"]
+      },
+      {
+        "type": "exercise",
+        "text": "Dai scaccomatto al re nero con la donna! (Matto in 1 mossa)",
+        "fen": "k7/8/1K6/8/8/8/8/Q7 w - - 0 1",
+        "correctMove": "a1a7",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "castling",
+    "title": "L'Arrocco",
+    "icon": "🏰",
+    "description": "Una mossa speciale che muove re e torre contemporaneamente per mettere il re al sicuro.",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "Arrocco corto (lato di re): il re si sposta di due caselle verso la torre, e la torre passa dall'altra parte. Condizioni: né re né torre devono essersi mossi, nessun pezzo in mezzo, il re non deve essere in scacco.",
+        "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+        "highlights": ["e1", "g1", "h1", "f1"]
+      },
+      {
+        "type": "demo",
+        "text": "Arrocco lungo (lato di donna): il re va verso la torre sul lato lungo. La torre passa dall'altra parte del re.",
+        "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+        "highlights": ["e1", "c1", "a1", "d1"]
+      },
+      {
+        "type": "exercise",
+        "text": "Esegui l'arrocco corto! Muovi il re da e1 a g1.",
+        "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+        "correctMove": "e1g1",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "enpassant",
+    "title": "En Passant",
+    "icon": "⚡",
+    "description": "Una cattura speciale del pedone: quando un pedone avversario avanza di due da inizio, puoi catturarlo 'al passaggio'.",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "Il pedone nero in d7 avanza di due caselle a d5. Il pedone bianco in e5 può catturarlo 'al passaggio', spostandosi in d6 come se il pedone nero fosse andato solo una casella avanti. Si può fare solo immediatamente dopo l'avanzamento di due.",
+        "fen": "8/3p4/8/4P3/8/8/8/8 b - - 0 1",
+        "highlights": ["d7", "d5", "e5", "d6"]
+      },
+      {
+        "type": "exercise",
+        "text": "Il pedone nero ha appena avanzato di due caselle. Catturalo en passant!",
+        "fen": "8/8/8/3pP3/8/8/8/8 w d6 0 1",
+        "correctMove": "e5d6",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "promotion",
+    "title": "Promozione del Pedone",
+    "icon": "👑",
+    "description": "Quando un pedone raggiunge l'ultima traversa (l'ottava riga), deve essere promosso a un altro pezzo a scelta.",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "Quando un pedone raggiunge l'ultima traversa, viene promosso. Di solito si sceglie la donna (il pezzo più forte), ma puoi scegliere torre, alfiere o cavallo.",
+        "fen": "8/4P3/8/8/8/8/8/8 w - - 0 1",
+        "highlights": ["e7", "e8"]
+      },
+      {
+        "type": "exercise",
+        "text": "Promuovi il pedone a donna muovendolo in e8! (sullo scopo di quest'esercizio, seleziona Donna nel popup)",
+        "fen": "8/4P3/8/8/8/8/8/4K3 w - - 0 1",
+        "correctMove": "e7e8q",
+        "orientation": "white"
+      }
+    ]
+  },
+  {
+    "id": "stalemate",
+    "title": "Lo Stallo",
+    "icon": "🤝",
+    "description": "Se il giocatore di turno non ha mosse legali ma NON è in scacco, è stallo: la partita finisce in parità!",
+    "steps": [
+      {
+        "type": "demo",
+        "text": "Stallo! È il turno del nero ma non ha mosse legali. Il re non è in scacco, ma ogni casella intorno è controllata. Risultato: patta!",
+        "fen": "k7/2Q5/1K6/8/8/8/8/8 b - - 0 1",
+        "highlights": ["a8"]
+      },
+      {
+        "type": "demo",
+        "text": "Attenzione! Quando sei in vantaggio, devi evitare di dare stallo all'avversario. Questo è un errore comune dei principianti.",
+        "fen": "k7/8/1K6/8/8/8/8/Q7 w - - 0 1",
+        "highlights": ["a1", "a8"]
+      },
+      {
+        "type": "exercise",
+        "text": "Dai scaccomatto al re nero SENZA causare stallo! Muovi la donna per dare matto.",
+        "fen": "k7/8/1K6/8/8/8/8/Q7 w - - 0 1",
+        "correctMove": "a1a7",
+        "orientation": "white"
+      }
+    ]
+  }
+]

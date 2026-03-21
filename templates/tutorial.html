@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial — Impara a giocare a scacchi</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- Chessboard.js CSS -->
+    <link rel="stylesheet"
+        href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+        integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU"
+        crossorigin="anonymous">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tutorial.css') }}">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Impara gli <span class="highlight">Scacchi</span></h1>
+            <a href="/" class="btn secondary nav-link">← Gioca</a>
+        </header>
+
+        <main>
+            <div class="tutorial-layout">
+                <!-- Lesson list sidebar -->
+                <div class="lesson-sidebar">
+                    <h3>Lezioni</h3>
+                    <div id="lesson-list" class="lesson-list"></div>
+                </div>
+
+                <!-- Main content area -->
+                <div class="tutorial-main">
+                    <!-- Welcome / lesson select state -->
+                    <div id="welcome-panel" class="tutorial-welcome">
+                        <h2>Benvenuto! 👋</h2>
+                        <p>Seleziona una lezione dalla lista per iniziare a imparare le regole degli scacchi.</p>
+                        <p class="text-secondary">Ogni lezione include spiegazioni illustrate ed esercizi interattivi sulla scacchiera.</p>
+                    </div>
+
+                    <!-- Active lesson area (hidden until lesson starts) -->
+                    <div id="lesson-area" class="lesson-area" style="display: none;">
+                        <div class="lesson-header">
+                            <h2 id="lesson-title"></h2>
+                            <div class="step-indicator">
+                                <span id="step-current">1</span> / <span id="step-total">1</span>
+                            </div>
+                        </div>
+
+                        <div class="lesson-content">
+                            <div id="tutorial-board" class="tutorial-board"></div>
+
+                            <div class="lesson-info-panel">
+                                <div id="step-text" class="step-text"></div>
+                                <div id="step-feedback" class="step-feedback"></div>
+
+                                <div class="lesson-nav">
+                                    <button id="prevStepBtn" class="btn secondary">← Indietro</button>
+                                    <button id="nextStepBtn" class="btn primary">Avanti →</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress-bar-container">
+                            <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+        crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"
+        integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="{{ url_for('static', filename='js/tutorial.js') }}"></script>
+</body>
+
+</html>

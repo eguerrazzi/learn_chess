@@ -61,12 +61,19 @@
     <div class="app-container">
         <header>
             <h1>Scacchi <span class="highlight">Pisani</span></h1>
+            <a href="/tutorial" class="btn nav-link">📖 Tutorial</a>
+            <a href="/dashboard" class="btn nav-link">📊 Dashboard</a>
             <div id="device-indicator" class="device-badge">Detecting Device...</div>
         </header>
 
         <main>
             <div class="game-area">
                 <div id="board" class="board"></div>
+
+                <div id="eval-bar" class="eval-bar" style="display: none;">
+                    <div id="eval-bar-fill" class="eval-bar-fill"></div>
+                    <span id="eval-bar-label" class="eval-bar-label">0.0</span>
+                </div>
 
                 <div class="controls-panel">
                     <div class="status-card">
@@ -83,8 +90,20 @@
                         </div>
                     </div>
 
-                    <div class="settings-card">
+                    <div id="settings-card" class="settings-card">
                         <h3>Settings</h3>
+
+                        <label>Modalità di gioco</label>
+                        <div class="color-selection">
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="cpu" checked>
+                                <span>🤖 vs Computer</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="pvp">
+                                <span>👥 1 vs 1</span>
+                            </label>
+                        </div>
 
                         <label>Play as</label>
                         <div class="color-selection">
@@ -98,6 +117,15 @@
                             </label>
                         </div>
 
+                        <div id="age-section">
+                            <label for="playerAge">Età giocatore</label>
+                            <input type="number" id="playerAge" name="playerAge" min="3" max="120" placeholder="Inserisci età">
+                            <div id="player2-age-section" style="display: none;">
+                                <label for="player2Age">Età giocatore 2</label>
+                                <input type="number" id="player2Age" name="player2Age" min="3" max="120" placeholder="Inserisci età">
+                            </div>
+                        </div>
+
                         <label for="timeControl">Time Control</label>
                         <select id="timeControl" name="timeControl">
                             <option value="bullet">Bullet (1 min + 1 sec)</option>
@@ -107,14 +135,25 @@
                             <option value="none">No Time Limit</option>
                         </select>
 
-                        <label for="elo">Engine ELO (200-3200)</label>
-                        <input type="range" id="elo" name="elo" min="200" max="3200" value="1500" step="50"
-                            oninput="this.nextElementSibling.value = this.value">
-                        <output>1500</output>
+                        <div id="elo-section">
+                            <label for="elo">Engine ELO (200-3200)</label>
+                            <input type="range" id="elo" name="elo" min="200" max="3200" value="1500" step="50"
+                                oninput="this.nextElementSibling.value = this.value">
+                            <output>1500</output>
+                        </div>
+                    </div>
+
+                    <div id="analysis-panel" class="status-card" style="display: none;">
+                        <h3>Game Analysis</h3>
+                        <div id="analysis-summary"></div>
+                        <div id="analysis-moves" class="analysis-moves"></div>
+                        <button id="closeAnalysisBtn" class="btn secondary" style="margin-top: 10px; width: 100%;">Close Analysis</button>
                     </div>
 
                     <div class="actions">
                         <button id="startBtn" class="btn primary">New Game</button>
+                        <button id="analyzeBtn" class="btn analyze" style="display: none;">Analyze</button>
+                        <button id="hintBtn" class="btn hint" title="Get a move suggestion">💡 Hint</button>
                         <button id="undoBtn" class="btn secondary">Undo Move</button>
                         <button id="resignBtn" class="btn secondary">Resign</button>
                         <button id="flipBtn" class="btn secondary">Flip Board</button>

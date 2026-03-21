@@ -1,0 +1,296 @@
+/* Tutorial-specific styles */
+
+.nav-link {
+    text-decoration: none;
+    padding: 8px 16px !important;
+    flex: unset !important;
+    font-size: 0.85rem !important;
+}
+
+/* Layout */
+.tutorial-layout {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    align-items: flex-start;
+}
+
+/* Sidebar */
+.lesson-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--card-bg);
+    backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.25rem;
+}
+
+.lesson-sidebar h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 0.5rem;
+}
+
+.lesson-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.lesson-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.lesson-item.lesson-active {
+    background: rgba(56, 189, 248, 0.12);
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.lesson-item.lesson-completed .lesson-name {
+    color: var(--success-color);
+}
+
+.lesson-item.lesson-locked {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.lesson-icon {
+    font-size: 1.3rem;
+    width: 28px;
+    text-align: center;
+}
+
+.lesson-name {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.lesson-status {
+    font-size: 0.8rem;
+}
+
+/* Main content area */
+.tutorial-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.tutorial-welcome {
+    background: var(--card-bg);
+    backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 3rem;
+    text-align: center;
+}
+
+.tutorial-welcome h2 {
+    font-size: 1.8rem;
+    margin-top: 0;
+}
+
+.tutorial-welcome .text-secondary {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Lesson area */
+.lesson-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.lesson-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lesson-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.step-indicator {
+    background: var(--card-bg);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    border: 1px solid var(--card-border);
+}
+
+.lesson-content {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.tutorial-board {
+    width: 450px !important;
+    height: 450px !important;
+    box-shadow: var(--board-shadow);
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 4px solid #334155;
+}
+
+.lesson-info-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.step-text {
+    background: var(--card-bg);
+    backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    min-height: 100px;
+}
+
+.step-text p {
+    margin: 0;
+}
+
+.step-feedback {
+    padding: 0 0.5rem;
+    font-weight: 600;
+    min-height: 1.5em;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.feedback-success {
+    color: var(--success-color);
+}
+
+.feedback-error {
+    color: var(--danger-color);
+}
+
+.lesson-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.lesson-nav .btn {
+    flex: 1;
+}
+
+/* Progress bar */
+.progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-color), var(--success-color));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+/* Lesson complete */
+.lesson-complete {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.lesson-complete h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    border: none;
+    color: var(--success-color);
+    text-transform: none;
+}
+
+/* Tutorial square highlights */
+.highlight-tutorial {
+    box-shadow: inset 0 0 5px 4px rgba(56, 189, 248, 0.7) !important;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .tutorial-layout {
+        flex-direction: column;
+    }
+
+    .lesson-sidebar {
+        width: 100%;
+    }
+
+    .lesson-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .lesson-item {
+        padding: 8px 10px;
+    }
+
+    .lesson-content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .tutorial-board {
+        width: 100% !important;
+        max-width: 450px;
+        height: auto !important;
+        aspect-ratio: 1 / 1;
+    }
+
+    .lesson-info-panel {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .lesson-sidebar {
+        padding: 0.75rem;
+    }
+
+    .lesson-name {
+        font-size: 0.8rem;
+    }
+
+    .tutorial-welcome {
+        padding: 1.5rem;
+    }
+
+    .step-text {
+        font-size: 0.9rem;
+        padding: 1rem;
+    }
+}

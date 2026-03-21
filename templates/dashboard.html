@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Process Mining Scacchi</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Dashboard <span class="highlight">Analytics</span></h1>
+            <a href="/" class="btn secondary nav-link">← Gioca</a>
+        </header>
+
+        <main>
+            <div id="dashboard-loading" class="dashboard-loading">
+                <p>Caricamento analisi...</p>
+            </div>
+
+            <div id="dashboard" class="dashboard" style="display: none;">
+
+                <!-- Summary cards -->
+                <section class="dash-section">
+                    <h2>📊 Riepilogo</h2>
+                    <div class="stat-cards">
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-games">0</div>
+                            <div class="stat-label">Partite giocate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-completed">0</div>
+                            <div class="stat-label">Completate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-moves">0</div>
+                            <div class="stat-label">Mosse totali</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-hints">0</div>
+                            <div class="stat-label">Suggerimenti usati</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-avg-moves">0</div>
+                            <div class="stat-label">Media mosse/partita</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Results distribution -->
+                <section class="dash-section">
+                    <h2>🏆 Distribuzione Risultati</h2>
+                    <div class="chart-area">
+                        <div id="results-chart" class="bar-chart"></div>
+                    </div>
+                </section>
+
+                <!-- ELO vs Win Rate -->
+                <section class="dash-section">
+                    <h2>📈 ELO vs Tasso di Vittoria</h2>
+                    <div id="elo-result-table-wrap">
+                        <table class="dash-table" id="elo-result-table">
+                            <thead>
+                                <tr>
+                                    <th>ELO</th>
+                                    <th>Partite</th>
+                                    <th>Vittorie</th>
+                                    <th>Sconfitte</th>
+                                    <th>Patte</th>
+                                    <th>Win Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Opening sequences -->
+                <section class="dash-section">
+                    <h2>♟️ Aperture più frequenti</h2>
+                    <div id="openings-list" class="openings-list"></div>
+                </section>
+
+                <!-- DFG opening -->
+                <section class="dash-section" id="dfg-section" style="display: none;">
+                    <h2>🔀 Process Map — Aperture (DFG)</h2>
+                    <div class="dfg-container">
+                        <img id="dfg-img" alt="DFG aperture" />
+                    </div>
+                </section>
+
+                <!-- Error distribution by phase -->
+                <section class="dash-section">
+                    <h2>🎯 Distribuzione Errori per Fase</h2>
+                    <div id="error-phase-wrap">
+                        <table class="dash-table" id="error-phase-table">
+                            <thead>
+                                <tr>
+                                    <th>Fase</th>
+                                    <th>Inesattezze</th>
+                                    <th>Errori</th>
+                                    <th>Sviste</th>
+                                    <th>Totale</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Error rate by ELO -->
+                <section class="dash-section">
+                    <h2>📉 Tasso Errori per ELO</h2>
+                    <div id="error-elo-wrap">
+                        <table class="dash-table" id="error-elo-table">
+                            <thead>
+                                <tr>
+                                    <th>ELO</th>
+                                    <th>Mosse analizzate</th>
+                                    <th>Errori</th>
+                                    <th>Tasso errori</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Worst moves -->
+                <section class="dash-section">
+                    <h2>💥 Peggiori Mosse</h2>
+                    <div id="worst-moves-wrap">
+                        <table class="dash-table" id="worst-moves-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Mossa</th>
+                                    <th>CP Persi</th>
+                                    <th>Fase</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Hint analysis -->
+                <section class="dash-section">
+                    <h2>💡 Analisi Suggerimenti</h2>
+                    <div id="hint-analysis" class="hint-analysis-grid"></div>
+                </section>
+
+                <!-- Empty state -->
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <h2>Nessun dato disponibile</h2>
+                    <p>Gioca qualche partita per vedere le analisi di Process Mining!</p>
+                    <a href="/" class="btn primary">Inizia a giocare</a>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>
