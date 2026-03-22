@@ -60,8 +60,9 @@
 
     <div class="app-container">
         <header>
-            <h1>Scacchi <span class="highlight">Pisani</span></h1>
+            <h1>Impara gli <span class="highlight">Scacchi!</span></h1>
             <a href="/tutorial" class="btn nav-link">📖 Tutorial</a>
+            <a href="/analyses" class="btn nav-link">📋 Analisi</a>
             <a href="/dashboard" class="btn nav-link">📊 Dashboard</a>
             <div id="device-indicator" class="device-badge">Detecting Device...</div>
         </header>
@@ -109,11 +110,11 @@
                         <div class="color-selection">
                             <label class="radio-label">
                                 <input type="radio" name="playerColor" value="white" checked>
-                                <span>SSSUP</span>
+                                <span>Bianco</span>
                             </label>
                             <label class="radio-label">
                                 <input type="radio" name="playerColor" value="black">
-                                <span>SNS</span>
+                                <span>Nero</span>
                             </label>
                         </div>
 
@@ -140,6 +141,14 @@
                             <input type="range" id="elo" name="elo" min="200" max="3200" value="1500" step="50"
                                 oninput="this.nextElementSibling.value = this.value">
                             <output>1500</output>
+                        </div>
+
+                        <div class="llm-toggle-section">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="useLLM">
+                                <span>🤖 AI Coach (Ollama)</span>
+                            </label>
+                            <small class="llm-hint">Usa il modello locale (gpt-oss:20b) per il rapporto allenatore</small>
                         </div>
                     </div>
 

@@ -25,7 +25,7 @@ HINTS_HEADERS = [
 
 GAMES_HEADERS = [
     'game_id', 'start_time', 'end_time', 'result', 'elo_setting', 'player_color', 'total_moves',
-    'game_mode', 'player_age', 'player2_age'
+    'game_mode', 'player_age', 'player2_age', 'time_control', 'accuracy'
 ]
 
 
@@ -63,13 +63,13 @@ def _now_iso():
 
 
 def log_new_game(game_id, elo_setting, player_color, game_mode='cpu',
-                 player_age='', player2_age=''):
+                 player_age='', player2_age='', time_control=''):
     """Append a new row to games_log.csv when a game starts."""
     _ensure_csv(GAMES_LOG, GAMES_HEADERS)
     with open(GAMES_LOG, 'a', newline='', encoding='utf-8') as f:
         csv.writer(f).writerow([
             game_id, _now_iso(), '', '', elo_setting, player_color, 0,
-            game_mode, player_age, player2_age
+            game_mode, player_age, player2_age, time_control, ''
         ])
 
 
@@ -110,6 +110,20 @@ def log_end_game(game_id, result, total_moves):
                 row[2] = _now_iso()       # end_time
                 row[3] = result            # result
                 row[6] = total_moves       # total_moves
+            rows.append(row)
+    with open(GAMES_LOG, 'w', newline='', encoding='utf-8') as f:
+        csv.writer(f).writerows(rows)
+
+
+def update_game_accuracy(game_id, accuracy):
+    """Update the accuracy field in games_log.csv after analysis."""
+    _ensure_csv(GAMES_LOG, GAMES_HEADERS)
+    rows = []
+    with open(GAMES_LOG, 'r', newline='', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if row and row[0] == game_id and len(row) > 11:
+                row[11] = accuracy  # accuracy column
             rows.append(row)
     with open(GAMES_LOG, 'w', newline='', encoding='utf-8') as f:
         csv.writer(f).writerows(rows)

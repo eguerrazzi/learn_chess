@@ -28,18 +28,26 @@ $(function () {
         $('#stat-moves').text(s.total_moves);
         $('#stat-hints').text(s.total_hints);
         $('#stat-avg-moves').text(s.avg_moves_per_game);
+        // Show CPU/PvP breakdown if available
+        if (s.cpu_games || s.pvp_games) {
+            var extra = '(CPU: ' + (s.cpu_games || 0) + ' | PvP: ' + (s.pvp_games || 0) + ')';
+            $('#stat-games').append('<div class="stat-sub">' + extra + '</div>');
+        }
     }
 
     function renderResultsChart(dist) {
         if (!dist || Object.keys(dist).length === 0) return;
         var max = Math.max.apply(null, Object.values(dist));
         var html = '';
-        var order = ['win', 'loss', 'draw', 'resign'];
-        var labels = { win: 'Vittorie', loss: 'Sconfitte', draw: 'Patte', resign: 'Abbandoni' };
+        var order = ['win', 'loss', 'draw', 'resign', 'timeout', 'abandoned'];
+        var labels = {
+            win: 'Vittorie', loss: 'Sconfitte', draw: 'Patte',
+            resign: 'Abbandoni', timeout: 'Timeout', abandoned: 'Interrotte'
+        };
         for (var i = 0; i < order.length; i++) {
             var key = order[i];
             var count = dist[key] || 0;
-            if (count === 0 && key === 'resign' && !dist.resign) continue;
+            if (count === 0) continue;
             var height = max > 0 ? Math.max(4, (count / max) * 140) : 4;
             html += '<div class="bar-item">';
             html += '<div class="bar-count">' + count + '</div>';

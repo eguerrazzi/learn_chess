@@ -381,16 +381,33 @@ def summary_stats(games_df, moves_df, hints_df):
         'avg_moves_per_game': 0,
         'unique_elos': [],
         'results_distribution': {},
+        'cpu_games': 0,
+        'pvp_games': 0,
     }
     if not games_df.empty:
         stats['total_games'] = len(games_df)
+        if 'game_mode' in games_df.columns:
+            stats['cpu_games'] = int((games_df['game_mode'] == 'cpu').sum())
+            stats['pvp_games'] = int((games_df['game_mode'] == 'pvp').sum())
         finished = games_df[games_df['result'].notna() & (games_df['result'] != '')]
         stats['completed_games'] = len(finished)
         if not finished.empty:
             stats['avg_moves_per_game'] = round(
                 float(finished['total_moves'].astype(float).mean()), 1
             )
-            stats['results_distribution'] = finished['result'].value_counts().to_dict()
+            raw_dist = finished['result'].value_counts().to_dict()
+            # Normalized distribution for chart (aggregate PvP into standard categories)
+            norm = {
+                'win': raw_dist.get('win', 0) + raw_dist.get('white_wins', 0) + raw_dist.get('black_wins', 0),
+                'loss': raw_dist.get('loss', 0),
+                'draw': raw_dist.get('draw', 0),
+                'resign': raw_dist.get('resign', 0) + raw_dist.get('white_resigns', 0) + raw_dist.get('black_resigns', 0),
+                'timeout': raw_dist.get('timeout', 0) + raw_dist.get('white_timeout', 0) + raw_dist.get('black_timeout', 0),
+                'abandoned': raw_dist.get('abandoned', 0) + raw_dist.get('unknown', 0),
+            }
+            stats['results_distribution'] = {k: v for k, v in norm.items() if v > 0}
+            # Keep raw for detail
+            stats['results_raw'] = raw_dist
         stats['unique_elos'] = sorted(games_df['elo_setting'].dropna().unique().tolist())
 
     if not moves_df.empty:

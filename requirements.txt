@@ -1,5 +1,6 @@
-Flask
-python-chess
-pm4py
-pandas
-matplotlib
+Flask>=3.0
+python-chess>=1.10
+pm4py>=2.7
+pandas>=2.1
+matplotlib>=3.8
+requests>=2.31

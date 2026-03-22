@@ -185,7 +185,7 @@ $(document).ready(function () {
             function handleTimeout() {
                 gameResigned = true;
                 if (gameMode === 'pvp') {
-                    var winner = (activeTimerSide === 'w') ? 'Black (SNS)' : 'White (SSSUP)';
+                    var winner = (activeTimerSide === 'w') ? 'Black (Nero)' : 'White (Bianco)';
                     $('#status').text(winner + ' wins on time!');
                     var result = (activeTimerSide === 'w') ? 'white_timeout' : 'black_timeout';
                     endGameOnServer(result);
@@ -700,6 +700,7 @@ $(document).ready(function () {
 
                 // Register new game on server
                 var elo = (gameMode === 'cpu') ? $('#elo').val() : 0;
+                var timeControl = $('#timeControl').val();
                 $.ajax({
                     url: '/new_game',
                     type: 'POST',
@@ -709,7 +710,8 @@ $(document).ready(function () {
                         player_color: playerColor,
                         game_mode: gameMode,
                         player_age: playerAge,
-                        player2_age: player2Age
+                        player2_age: player2Age,
+                        time_control: timeControl
                     }),
                     success: function (response) {
                         gameId = response.game_id;
@@ -751,8 +753,8 @@ $(document).ready(function () {
                 stopPlayerTimer();
                 gameResigned = true;
                 if (gameMode === 'pvp') {
-                    var loser = (game.turn() === 'w') ? 'White (SSSUP)' : 'Black (SNS)';
-                    var winner = (game.turn() === 'w') ? 'Black (SNS)' : 'White (SSSUP)';
+                    var loser = (game.turn() === 'w') ? 'White (Bianco)' : 'Black (Nero)';
+                    var winner = (game.turn() === 'w') ? 'Black (Nero)' : 'White (Bianco)';
                     $('#status').text(winner + ' wins by resignation');
                     var result = (game.turn() === 'w') ? 'white_resigns' : 'black_resigns';
                     endGameOnServer(result);
@@ -835,20 +837,83 @@ $(document).ready(function () {
                 $('#analysis-panel').show();
                 $('#eval-bar').show();
 
+                var isPvp = (gameMode === 'pvp');
                 var s = analysisData.summary;
-                var summaryHtml = '<div class="accuracy-display">' +
-                    '<div class="accuracy-value">' + s.accuracy + '%</div>' +
-                    '<div class="accuracy-label">Accuracy</div>' +
-                    '</div>' +
-                    '<div class="classification-counts">' +
-                    (s.best > 0 ? '<span class="cl-badge cl-best">' + s.best + ' Best</span>' : '') +
-                    (s.excellent > 0 ? '<span class="cl-badge cl-excellent">' + s.excellent + ' Excellent</span>' : '') +
-                    (s.good > 0 ? '<span class="cl-badge cl-good">' + s.good + ' Good</span>' : '') +
-                    (s.inaccuracy > 0 ? '<span class="cl-badge cl-inaccuracy">' + s.inaccuracy + ' Inaccuracy</span>' : '') +
-                    (s.mistake > 0 ? '<span class="cl-badge cl-mistake">' + s.mistake + ' Mistake</span>' : '') +
-                    (s.blunder > 0 ? '<span class="cl-badge cl-blunder">' + s.blunder + ' Blunder</span>' : '') +
-                    '</div>' +
-                    '<div class="avg-cp-loss">Avg CP Loss: ' + s.avg_cp_loss + '</div>';
+                var summaryHtml = '';
+
+                // Accuracy display
+                if (isPvp && analysisData.summary_white && analysisData.summary_black) {
+                    var sw = analysisData.summary_white;
+                    var sb = analysisData.summary_black;
+                    summaryHtml += '<div class="pvp-accuracy-row">';
+                    summaryHtml += '<div class="accuracy-display"><div class="accuracy-value">' + sw.accuracy + '%</div><div class="accuracy-label">⬜ Bianco</div></div>';
+                    summaryHtml += '<div class="accuracy-display"><div class="accuracy-value">' + sb.accuracy + '%</div><div class="accuracy-label">⬛ Nero</div></div>';
+                    summaryHtml += '</div>';
+                    summaryHtml += '<div class="classification-counts">';
+                    // Combined badges
+                    var cats = ['best','excellent','good','inaccuracy','mistake','blunder'];
+                    for (var ci = 0; ci < cats.length; ci++) {
+                        var cnt = (s[cats[ci]] || 0);
+                        if (cnt > 0) summaryHtml += '<span class="cl-badge cl-' + cats[ci] + '">' + cnt + ' ' + cats[ci].charAt(0).toUpperCase() + cats[ci].slice(1) + '</span>';
+                    }
+                    summaryHtml += '</div>';
+                } else {
+                    summaryHtml += '<div class="accuracy-display">' +
+                        '<div class="accuracy-value">' + s.accuracy + '%</div>' +
+                        '<div class="accuracy-label">Accuracy</div>' +
+                        '</div>' +
+                        '<div class="classification-counts">' +
+                        (s.best > 0 ? '<span class="cl-badge cl-best">' + s.best + ' Best</span>' : '') +
+                        (s.excellent > 0 ? '<span class="cl-badge cl-excellent">' + s.excellent + ' Excellent</span>' : '') +
+                        (s.good > 0 ? '<span class="cl-badge cl-good">' + s.good + ' Good</span>' : '') +
+                        (s.inaccuracy > 0 ? '<span class="cl-badge cl-inaccuracy">' + s.inaccuracy + ' Inaccuracy</span>' : '') +
+                        (s.mistake > 0 ? '<span class="cl-badge cl-mistake">' + s.mistake + ' Mistake</span>' : '') +
+                        (s.blunder > 0 ? '<span class="cl-badge cl-blunder">' + s.blunder + ' Blunder</span>' : '') +
+                        '</div>';
+                }
+                summaryHtml += '<div class="avg-cp-loss">Avg CP Loss: ' + s.avg_cp_loss + '</div>';
+
+                // Critical Moments
+                if (analysisData.critical_moments && analysisData.critical_moments.length > 0) {
+                    summaryHtml += '<div class="critical-moments-section">';
+                    summaryHtml += '<h4>🔍 Momenti Critici</h4>';
+                    for (var ci2 = 0; ci2 < analysisData.critical_moments.length; ci2++) {
+                        var cm = analysisData.critical_moments[ci2];
+                        var cmMoveNum = Math.ceil(cm.ply / 2);
+                        var cmSide = cm.is_white ? '⬜' : '⬛';
+                        summaryHtml += '<div class="critical-moment-card" data-ply="' + cm.ply + '">';
+                        summaryHtml += '<span class="cm-num">' + cmSide + ' #' + cmMoveNum + '</span>';
+                        summaryHtml += '<span class="cm-played">' + cm.move_san + '</span>';
+                        summaryHtml += '<span class="cm-arrow">→</span>';
+                        summaryHtml += '<span class="cm-best">' + cm.best_move_san + '</span>';
+                        summaryHtml += '<span class="cm-loss">−' + cm.cp_loss + '</span>';
+                        summaryHtml += '</div>';
+                    }
+                    summaryHtml += '</div>';
+                }
+
+                // Coach Report
+                if (analysisData.coach_report) {
+                    summaryHtml += '<div class="coach-report-section">';
+                    summaryHtml += '<h4>🎓 Allenatore</h4>';
+                    summaryHtml += '<div class="coach-report-text">' + renderSimpleMarkdown(analysisData.coach_report) + '</div>';
+                    summaryHtml += '</div>';
+                }
+
+                // Tutorial Suggestions
+                if (analysisData.tutorial_suggestions && analysisData.tutorial_suggestions.length > 0) {
+                    summaryHtml += '<div class="tutorial-suggestions-section">';
+                    summaryHtml += '<h4>📚 Cosa Studiare</h4>';
+                    for (var ti = 0; ti < analysisData.tutorial_suggestions.length; ti++) {
+                        var ts = analysisData.tutorial_suggestions[ti];
+                        summaryHtml += '<a href="/tutorial#lesson-' + ts.lesson_id + '" class="tutorial-suggestion-link">';
+                        summaryHtml += '<span class="ts-title">' + ts.title + '</span>';
+                        summaryHtml += '<span class="ts-reason">' + ts.reason + '</span>';
+                        summaryHtml += '</a>';
+                    }
+                    summaryHtml += '</div>';
+                }
+
                 $('#analysis-summary').html(summaryHtml);
 
                 var movesHtml = '';
@@ -930,13 +995,20 @@ $(document).ready(function () {
                     var mv = moves[mi];
                     movesUci.push(mv.from + mv.to + (mv.promotion || ''));
                 }
+                var eloVal = (gameMode === 'cpu') ? parseInt($('#elo').val()) : 0;
+                var ageVal = $('#playerAge').val() || '';
                 $.ajax({
                     url: '/analyze_game',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
                         moves: movesUci,
-                        player_color: playerColor
+                        player_color: playerColor,
+                        game_mode: gameMode,
+                        game_id: gameId,
+                        elo_setting: eloVal,
+                        player_age: ageVal,
+                        use_llm: $('#useLLM').is(':checked')
                     }),
                     success: function (response) {
                         $btn.prop('disabled', false).text('Analyze');
@@ -966,6 +1038,23 @@ $(document).ready(function () {
                 var ply = parseInt($(this).data('ply'));
                 navigateToAnalysisPly(ply);
             });
+
+            // Click critical moment to navigate
+            $('#analysis-summary').on('click', '.critical-moment-card', function () {
+                var ply = parseInt($(this).data('ply'));
+                navigateToAnalysisPly(ply);
+            });
+
+            function renderSimpleMarkdown(text) {
+                // Simple markdown rendering
+                var escaped = $('<div>').text(text || '').html();
+                return escaped
+                    .replace(/## (.+)/g, '<strong style="font-size:1.05rem;display:block;margin-top:10px;">$1</strong>')
+                    .replace(/### (.+)/g, '<strong style="display:block;margin-top:8px;">$1</strong>')
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/^- (.+)/gm, '&bull; $1')
+                    .replace(/\n/g, '<br>');
+            }
 
             // Undo Move Button
             $('#undoBtn').on('click', function () {

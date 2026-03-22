@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisi Salvate — Scacchi</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <!-- Chessboard.js CSS for mini-boards -->
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+        integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU" crossorigin="anonymous">
+
+    <style>
+        .analyses-list { max-width: 900px; margin: 0 auto; }
+        .analysis-card {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .analysis-card:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .analysis-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .analysis-card-header h3 { margin: 0; font-size: 1.1rem; }
+        .analysis-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .analysis-meta span { display: flex; align-items: center; gap: 4px; }
+        .accuracy-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .acc-high { background: rgba(76,175,80,0.2); color: #4caf50; }
+        .acc-mid { background: rgba(255,193,7,0.2); color: #ffc107; }
+        .acc-low { background: rgba(244,67,54,0.2); color: #f44336; }
+
+        /* Detail modal */
+        .detail-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .detail-content {
+            max-width: 950px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+        }
+        .detail-close {
+            position: absolute; top: 16px; right: 16px;
+            background: none; border: none; color: var(--text-primary);
+            font-size: 1.5rem; cursor: pointer;
+        }
+        .detail-section { margin-top: 24px; }
+        .detail-section h3 { margin-bottom: 12px; color: var(--accent); }
+
+        .coach-report-text {
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 20px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+        .coach-report-text strong { color: var(--accent); }
+
+        .critical-card {
+            background: rgba(244,67,54,0.08);
+            border: 1px solid rgba(244,67,54,0.2);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .critical-card-expand {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .cm-boards-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+        .cm-mini-board-wrap {
+            text-align: center;
+            flex: 0 0 auto;
+        }
+        .cm-mini-board-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .cm-mini-board {
+            width: 192px;
+            height: 192px;
+        }
+        .critical-card .move-num {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f44336;
+            min-width: 40px;
+            text-align: center;
+        }
+        .critical-card .move-detail { flex: 1; }
+        .critical-card .played { color: #f44336; font-weight: 600; }
+        .critical-card .better { color: #4caf50; font-weight: 600; }
+
+        .tutorial-card {
+            background: rgba(33,150,243,0.08);
+            border: 1px solid rgba(33,150,243,0.2);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .tutorial-card a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .tutorial-card a:hover { text-decoration: underline; }
+        .tutorial-card .reason { color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px; }
+
+        .pvp-summaries {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .pvp-summary-card {
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .pvp-summary-card h4 { margin: 0 0 8px 0; }
+
+        .move-list-compact {
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        .move-list-compact .cl-best { color: #4caf50; }
+        .move-list-compact .cl-excellent { color: #8bc34a; }
+        .move-list-compact .cl-good { color: #cddc39; }
+        .move-list-compact .cl-inaccuracy { color: #ffc107; }
+        .move-list-compact .cl-mistake { color: #ff9800; }
+        .move-list-compact .cl-blunder { color: #f44336; }
+
+        .mini-board-wrap { width: 200px; height: 200px; margin: 0 auto 10px; }
+
+        .no-analyses {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        /* LLM loading state */
+        .llm-loading-box {
+            background: rgba(255,255,255,0.04);
+            border: 1px dashed rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 18px 20px;
+            color: var(--text-secondary);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .llm-spinner-icon {
+            font-size: 1.3rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Empty board placeholder (no FEN) */
+        .cm-no-fen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+        }
+
+        /* Replay Board */
+        .replay-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .replay-board-wrap {
+            flex: 0 0 auto;
+        }
+        .replay-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .replay-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .replay-btn:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: var(--accent);
+        }
+        #replay-ply-info {
+            min-width: 70px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .replay-moves-list {
+            flex: 1;
+            min-width: 200px;
+            max-height: 440px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+        }
+        .replay-move {
+            display: inline-block;
+            padding: 2px 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .replay-move:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .replay-move-active {
+            background: rgba(33,150,243,0.25);
+            outline: 1px solid var(--accent);
+        }
+        .replay-moves-list .cl-best { color: #4caf50; }
+        .replay-moves-list .cl-excellent { color: #8bc34a; }
+        .replay-moves-list .cl-good { color: #cddc39; }
+        .replay-moves-list .cl-inaccuracy { color: #ffc107; }
+        .replay-moves-list .cl-mistake { color: #ff9800; }
+        .replay-moves-list .cl-blunder { color: #f44336; }
+        .replay-flip {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-left: 12px;
+        }
+        .replay-flip:hover {
+            background: rgba(255,255,255,0.15);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>📋 Analisi <span class="highlight">Salvate</span></h1>
+            <a href="/" class="btn secondary nav-link">← Gioca</a>
+            <a href="/dashboard" class="btn secondary nav-link">📊 Dashboard</a>
+        </header>
+
+        <main>
+            <div id="loading" class="dashboard-loading">
+                <p>Caricamento analisi...</p>
+            </div>
+
+            <div id="analyses-container" class="analyses-list" style="display: none;"></div>
+
+            <div id="no-analyses" class="no-analyses" style="display: none;">
+                <h2>Nessuna analisi salvata</h2>
+                <p>Gioca una partita e clicca "Analyze" per salvare la tua prima analisi!</p>
+                <a href="/" class="btn primary">Gioca ora</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- Detail Overlay -->
+    <div id="detail-overlay" class="detail-overlay">
+        <div class="detail-content" id="detail-content">
+            <button class="detail-close" id="detail-close">&times;</button>
+            <div id="detail-body"></div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+        crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"
+        integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
+        crossorigin="anonymous"></script>
+
+    <script>
+    $(function() {
+        function accClass(acc) {
+            if (acc >= 70) return 'acc-high';
+            if (acc >= 40) return 'acc-mid';
+            return 'acc-low';
+        }
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str || ''));
+            return div.innerHTML;
+        }
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            var d = new Date(iso);
+            return d.toLocaleDateString('it-IT', {day:'2-digit', month:'short', year:'numeric'}) +
+                   ' ' + d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+        }
+
+        // Load list
+        $.getJSON('/api/analyses', function(data) {
+            $('#loading').hide();
+            if (!data || data.length === 0) {
+                $('#no-analyses').show();
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < data.length; i++) {
+                var a = data[i];
+                var s = a.summary || {};
+                var acc = s.accuracy || 0;
+                var mode = a.game_mode === 'pvp' ? '👥 PvP' : '🤖 vs CPU';
+                var elo = (a.game_mode !== 'pvp' && a.elo_setting) ? ' (ELO ' + a.elo_setting + ')' : '';
+                var age = a.player_age ? ('🎂 ' + a.player_age + ' anni') : '';
+
+                // PvP: show both accuracies
+                var accHtml = '';
+                if (a.game_mode === 'pvp' && a.summary_white && a.summary_black) {
+                    var aw = a.summary_white.accuracy || 0;
+                    var ab = a.summary_black.accuracy || 0;
+                    accHtml = '<span class="accuracy-badge ' + accClass(aw) + '">⬜ ' + aw + '%</span> ' +
+                              '<span class="accuracy-badge ' + accClass(ab) + '">⬛ ' + ab + '%</span>';
+                } else {
+                    accHtml = '<span class="accuracy-badge ' + accClass(acc) + '">' + acc + '%</span>';
+                }
+
+                html += '<div class="analysis-card" data-game-id="' + escapeHtml(a.game_id) + '">';
+                html += '<div class="analysis-card-header">';
+                html += '<h3>' + mode + elo + '</h3>';
+                html += accHtml;
+                html += '</div>';
+                html += '<div class="analysis-meta">';
+                html += '<span>📅 ' + fmtDate(a.timestamp) + '</span>';
+                if (age) html += '<span>' + age + '</span>';
+                html += '<span>📊 ' + (s.total_user_moves || 0) + ' mosse</span>';
+                html += '<span>Avg CP Loss: ' + (s.avg_cp_loss || 0) + '</span>';
+                html += '</div>';
+                html += '</div>';
+            }
+            $('#analyses-container').html(html).show();
+        }).fail(function() {
+            $('#loading').html('<p>Errore nel caricamento.</p>');
+        });
+
+        // Click to open detail
+        $(document).on('click', '.analysis-card', function() {
+            var gid = $(this).data('game-id');
+            loadDetail(gid);
+        });
+
+        // Close detail
+        $('#detail-close').on('click', function() { $('#detail-overlay').fadeOut(); });
+        $('#detail-overlay').on('click', function(e) {
+            if (e.target === this) $(this).fadeOut();
+        });
+
+        function loadDetail(gameId) {
+            $('#detail-body').html('<p>Caricamento...</p>');
+            $('#detail-overlay').fadeIn();
+
+            $.getJSON('/api/analysis/' + gameId, function(a) {
+                var html = '';
+                var s = a.summary || {};
+                var mode = a.game_mode === 'pvp' ? '👥 1 vs 1' : '🤖 vs Computer';
+                var elo = (a.game_mode !== 'pvp' && a.elo_setting) ? ' — ELO ' + a.elo_setting : '';
+
+                html += '<h2>' + mode + elo + '</h2>';
+                html += '<p style="color:var(--text-secondary)">' + fmtDate(a.timestamp) + '</p>';
+
+                // Accuracy summary
+                if (a.game_mode === 'pvp' && a.summary_white && a.summary_black) {
+                    html += '<div class="pvp-summaries">';
+                    html += renderSummaryCard('⬜ Bianco', a.summary_white);
+                    html += renderSummaryCard('⬛ Nero', a.summary_black);
+                    html += '</div>';
+                } else {
+                    html += '<div class="detail-section">';
+                    html += '<div class="accuracy-badge ' + accClass(s.accuracy || 0) + '" style="font-size:1.3rem;padding:8px 20px;">';
+                    html += 'Precisione: ' + (s.accuracy || 0) + '%</div>';
+                    html += '<p>CP Loss medio: ' + (s.avg_cp_loss || 0) + ' | Mosse: ' + (s.total_user_moves || 0) + '</p>';
+                    html += renderBadges(s);
+                    html += '</div>';
+                }
+
+                // Replay board + interactive move list
+                if (a.moves && a.moves.length > 0) {
+                    html += '<div class="detail-section">';
+                    html += '<h3>♟️ Replay Partita</h3>';
+                    html += '<div class="replay-container">';
+                    html += '<div class="replay-board-wrap">';
+                    html += '<div id="replay-board" style="width:400px;height:400px"></div>';
+                    html += '<div class="replay-controls">';
+                    html += '<button class="replay-btn" id="btn-start" title="Inizio">⏮</button>';
+                    html += '<button class="replay-btn" id="btn-prev" title="Indietro">◀</button>';
+                    html += '<span id="replay-ply-info">0 / 0</span>';
+                    html += '<button class="replay-btn" id="btn-next" title="Avanti">▶</button>';
+                    html += '<button class="replay-btn" id="btn-end" title="Fine">⏭</button>';
+                    html += '<button class="replay-flip" id="btn-flip" title="Gira scacchiera">🔄</button>';
+                    html += '</div></div>';
+                    html += '<div class="replay-moves-list" id="replay-moves-list">';
+                    for (var k = 0; k < a.moves.length; k++) {
+                        var m = a.moves[k];
+                        var mn2 = Math.ceil(m.ply / 2);
+                        var prefix = (m.ply % 2 === 1) ? mn2 + '. ' : '';
+                        var cls = m.classification ? ('cl-' + m.classification) : '';
+                        html += '<span class="replay-move ' + cls + '" data-idx="' + k + '">';
+                        html += prefix + escapeHtml(m.move_san);
+                        html += '</span> ';
+                    }
+                    html += '</div>';
+                    html += '</div></div>';
+                }
+
+                // Critical moments
+                if (a.critical_moments && a.critical_moments.length > 0) {
+                    html += '<div class="detail-section">';
+                    html += '<h3>🔍 Momenti Critici</h3>';
+                    for (var i = 0; i < a.critical_moments.length; i++) {
+                        var cm = a.critical_moments[i];
+                        var mn = Math.ceil(cm.ply / 2);
+                        var side = cm.is_white ? 'Bianco' : 'Nero';
+                        html += '<div class="critical-card critical-card-expand">';
+                        html += '<div class="cm-boards-row">';
+                        html += '<div class="cm-mini-board-wrap"><div class="cm-mini-board-label">Prima</div>';
+                        // explicit width on the div so Chessboard.js can measure it even before layout
+                        if (cm.fen_before) {
+                            html += '<div id="cm-board-before-' + i + '" class="cm-mini-board" style="width:192px;height:192px"></div>';
+                        } else {
+                            html += '<div class="cm-mini-board cm-no-fen" style="width:192px;height:192px"><span>—</span></div>';
+                        }
+                        html += '</div>';
+                        html += '<div class="cm-mini-board-wrap"><div class="cm-mini-board-label">Dopo (' + escapeHtml(cm.move_san) + ')</div>';
+                        if (cm.fen_after) {
+                            html += '<div id="cm-board-after-' + i + '" class="cm-mini-board" style="width:192px;height:192px"></div>';
+                        } else {
+                            html += '<div class="cm-mini-board cm-no-fen" style="width:192px;height:192px"><span>—</span></div>';
+                        }
+                        html += '</div>';
+                        html += '</div>';
+                        html += '<div class="move-detail">';
+                        html += '<div style="margin-bottom:4px"><strong>#' + mn + ' ' + side + '</strong></div>';
+                        html += '<div>Giocata: <span class="played">' + escapeHtml(cm.move_san) + '</span></div>';
+                        html += '<div>Migliore: <span class="better">' + escapeHtml(cm.best_move_san) + '</span></div>';
+                        html += '<div style="color:var(--text-secondary);font-size:0.85rem;margin-top:4px">\u2212' + cm.cp_loss + ' cp (' + cm.classification + ')</div>';
+                        html += '</div>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                }
+
+                // Rule-based coach report
+                if (a.coach_report) {
+                    html += '<div class="detail-section">';
+                    html += '<h3>🎓 Rapporto dell\'Allenatore</h3>';
+                    html += '<div class="coach-report-text">' + renderMarkdown(a.coach_report) + '</div>';
+                    html += '</div>';
+                }
+
+                // LLM AI section — auto-loaded, show cached if available
+                html += '<div class="detail-section" id="llm-section">';
+                html += '<h3>🤖 Commento AI</h3>';
+                if (a.llm_coach_report) {
+                    html += '<div class="coach-report-text">' + renderMarkdown(a.llm_coach_report) + '</div>';
+                } else {
+                    html += '<div id="llm-loading" class="llm-loading-box">';
+                    html += '<span class="llm-spinner-icon">⏳</span> Chiedo al modello AI… potrebbe richiedere qualche secondo.';
+                    html += '</div>';
+                }
+                html += '</div>';
+
+                // Tutorial suggestions
+                if (a.tutorial_suggestions && a.tutorial_suggestions.length > 0) {
+                    html += '<div class="detail-section">';
+                    html += '<h3>📚 Cosa Studiare</h3>';
+                    for (var j = 0; j < a.tutorial_suggestions.length; j++) {
+                        var ts = a.tutorial_suggestions[j];
+                        html += '<div class="tutorial-card">';
+                        html += '<a href="/tutorial#lesson-' + escapeHtml(ts.lesson_id) + '">' + escapeHtml(ts.title) + ' \u2192</a>';
+                        html += '<div class="reason">' + escapeHtml(ts.reason) + '</div>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                }
+
+                $('#detail-body').html(html);
+
+                // Initialize mini chessboards with setTimeout to ensure layout is computed
+                var pieceTheme = 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png';
+                if (a.critical_moments && a.critical_moments.length > 0) {
+                    setTimeout(function() {
+                        for (var bi = 0; bi < a.critical_moments.length; bi++) {
+                            (function(idx, moment) {
+                                var orient = moment.is_white ? 'white' : 'black';
+                                if (moment.fen_before && $('#cm-board-before-' + idx).length) {
+                                    try {
+                                        Chessboard('cm-board-before-' + idx, {
+                                            position: moment.fen_before.split(' ')[0],
+                                            orientation: orient,
+                                            showNotation: false,
+                                            draggable: false,
+                                            pieceTheme: pieceTheme
+                                        });
+                                    } catch(e) { console.warn('Board init before-' + idx, e); }
+                                }
+                                if (moment.fen_after && $('#cm-board-after-' + idx).length) {
+                                    try {
+                                        Chessboard('cm-board-after-' + idx, {
+                                            position: moment.fen_after.split(' ')[0],
+                                            orientation: orient,
+                                            showNotation: false,
+                                            draggable: false,
+                                            pieceTheme: pieceTheme
+                                        });
+                                    } catch(e) { console.warn('Board init after-' + idx, e); }
+                                }
+                            })(bi, a.critical_moments[bi]);
+                        }
+                    }, 80);
+                }
+
+                // Initialize replay board
+                if (a.moves && a.moves.length > 0) {
+                    (function() {
+                        var positions = ['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'];
+                        for (var ri = 0; ri < a.moves.length; ri++) {
+                            var fen = a.moves[ri].fen_after;
+                            positions.push(fen ? fen.split(' ')[0] : positions[positions.length - 1]);
+                        }
+                        var ply = 0;
+                        var orient = (a.player_color === 'black') ? 'black' : 'white';
+                        var board = null;
+
+                        function updateReplay() {
+                            if (!board) return;
+                            board.position(positions[ply], false);
+                            $('#replay-ply-info').text(ply + ' / ' + (positions.length - 1));
+                            $('.replay-move').removeClass('replay-move-active');
+                            if (ply > 0) {
+                                var $el = $('.replay-move[data-idx="' + (ply - 1) + '"]');
+                                $el.addClass('replay-move-active');
+                                var cont = document.getElementById('replay-moves-list');
+                                if (cont && $el[0]) {
+                                    $el[0].scrollIntoView({block: 'nearest', behavior: 'smooth'});
+                                }
+                            }
+                        }
+
+                        setTimeout(function() {
+                            board = Chessboard('replay-board', {
+                                position: 'start',
+                                orientation: orient,
+                                showNotation: true,
+                                draggable: false,
+                                pieceTheme: pieceTheme
+                            });
+                            updateReplay();
+                        }, 100);
+
+                        $(document).off('.replay');
+                        $(document).on('click.replay', '#btn-start', function() { ply = 0; updateReplay(); });
+                        $(document).on('click.replay', '#btn-prev', function() { if (ply > 0) { ply--; updateReplay(); } });
+                        $(document).on('click.replay', '#btn-next', function() { if (ply < positions.length - 1) { ply++; updateReplay(); } });
+                        $(document).on('click.replay', '#btn-end', function() { ply = positions.length - 1; updateReplay(); });
+                        $(document).on('click.replay', '#btn-flip', function() {
+                            orient = (orient === 'white') ? 'black' : 'white';
+                            if (board) board.orientation(orient);
+                        });
+                        $(document).on('click.replay', '.replay-move', function() {
+                            ply = parseInt($(this).data('idx')) + 1;
+                            updateReplay();
+                        });
+                        $(document).on('keydown.replay', function(e) {
+                            if (!$('#detail-overlay').is(':visible')) return;
+                            if (e.key === 'ArrowLeft') { e.preventDefault(); if (ply > 0) { ply--; updateReplay(); } }
+                            else if (e.key === 'ArrowRight') { e.preventDefault(); if (ply < positions.length - 1) { ply++; updateReplay(); } }
+                            else if (e.key === 'Home') { e.preventDefault(); ply = 0; updateReplay(); }
+                            else if (e.key === 'End') { e.preventDefault(); ply = positions.length - 1; updateReplay(); }
+                        });
+                    })();
+                }
+
+                // Auto-load LLM report if not already cached
+                if (!a.llm_coach_report) {
+                    $.ajax({
+                        url: '/api/analysis/' + gameId + '/llm_report',
+                        type: 'POST',
+                        timeout: 90000,
+                        success: function(resp) {
+                            if (resp.report) {
+                                $('#llm-loading').replaceWith(
+                                    '<div class="coach-report-text">' + renderMarkdown(resp.report) + '</div>'
+                                );
+                            } else {
+                                $('#llm-loading').html('⚠️ Risposta AI vuota.');
+                            }
+                        },
+                        error: function(xhr) {
+                            var msg = '⚠️ AI non disponibile';
+                            if (xhr.status === 0) msg += ' (Ollama non in esecuzione)';
+                            else if (xhr.responseJSON && xhr.responseJSON.error) msg += ': ' + xhr.responseJSON.error;
+                            msg += ' <button class="replay-btn" style="font-size:0.8rem;padding:4px 10px;margin-left:8px" onclick="loadLlmReport(\'' + gameId + '\')">🔄 Riprova</button>';
+                            $('#llm-loading').html(msg);
+                        }
+                    });
+                }
+
+            }).fail(function() {
+                $('#detail-body').html('<p>Errore nel caricamento dell\'analisi.</p>');
+            });
+        }
+
+        function renderSummaryCard(title, s) {
+            var html = '<div class="pvp-summary-card">';
+            html += '<h4>' + title + '</h4>';
+            html += '<div class="accuracy-badge ' + accClass(s.accuracy || 0) + '">' + (s.accuracy || 0) + '%</div>';
+            html += '<p>CP Loss: ' + (s.avg_cp_loss || 0) + ' | Mosse: ' + (s.total_user_moves || 0) + '</p>';
+            html += renderBadges(s);
+            html += '</div>';
+            return html;
+        }
+
+        function renderBadges(s) {
+            var html = '<div style="margin-top:8px;">';
+            var cats = [
+                ['best', 'Best', '#4caf50'], ['excellent', 'Excellent', '#8bc34a'],
+                ['good', 'Good', '#cddc39'], ['inaccuracy', 'Inaccuracy', '#ffc107'],
+                ['mistake', 'Mistake', '#ff9800'], ['blunder', 'Blunder', '#f44336']
+            ];
+            for (var i = 0; i < cats.length; i++) {
+                var c = cats[i];
+                if ((s[c[0]] || 0) > 0) {
+                    html += '<span style="display:inline-block;padding:2px 8px;margin:2px;border-radius:10px;' +
+                            'background:' + c[2] + '22;color:' + c[2] + ';font-size:0.8rem;">' +
+                            s[c[0]] + ' ' + c[1] + '</span>';
+                }
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function renderMarkdown(text) {
+            // Simple markdown: **bold**, ## headers, - lists, line breaks
+            return escapeHtml(text)
+                .replace(/## (.+)/g, '<strong style="font-size:1.1rem;display:block;margin-top:12px;">$1</strong>')
+                .replace(/### (.+)/g, '<strong style="display:block;margin-top:10px;">$1</strong>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/^- (.+)/gm, '&bull; $1')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Global retry function for LLM report
+        window.loadLlmReport = function(gameId) {
+            $('#llm-loading').html('<span class="llm-spinner-icon">⏳</span> Riprovo… potrebbe richiedere qualche secondo.');
+            $.ajax({
+                url: '/api/analysis/' + gameId + '/llm_report',
+                type: 'POST',
+                timeout: 120000,
+                success: function(resp) {
+                    if (resp.report) {
+                        $('#llm-loading').replaceWith(
+                            '<div class="coach-report-text">' + renderMarkdown(resp.report) + '</div>'
+                        );
+                    } else {
+                        $('#llm-loading').html('⚠️ Risposta AI vuota.');
+                    }
+                },
+                error: function(xhr) {
+                    var msg = '⚠️ AI non disponibile';
+                    if (xhr.status === 0) msg += ' (Ollama non in esecuzione)';
+                    else if (xhr.responseJSON && xhr.responseJSON.error) msg += ': ' + xhr.responseJSON.error;
+                    msg += ' <button class="replay-btn" style="font-size:0.8rem;padding:4px 10px;margin-left:8px" onclick="loadLlmReport(\'' + gameId + '\')">🔄 Riprova</button>';
+                    $('#llm-loading').html(msg);
+                }
+            });
+        };
+    });
+    </script>
+</body>
+</html>

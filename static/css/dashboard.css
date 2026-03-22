@@ -128,6 +128,8 @@
 .bar-fill.bar-loss  { background: linear-gradient(180deg, #ef4444, #dc2626); }
 .bar-fill.bar-draw  { background: linear-gradient(180deg, #fbbf24, #d97706); }
 .bar-fill.bar-resign { background: linear-gradient(180deg, #a78bfa, #7c3aed); }
+.bar-fill.bar-timeout { background: linear-gradient(180deg, #fb923c, #ea580c); }
+.bar-fill.bar-abandoned { background: linear-gradient(180deg, #94a3b8, #64748b); }
 
 .bar-count {
     font-weight: 600;
